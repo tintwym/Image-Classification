@@ -15,6 +15,8 @@ from PIL import Image
 
 # Set image dimensions
 image_height, image_width = 256, 256
+batch_size = 32
+epochs = 10
 
 # Directory paths
 train_directory = 'Datasets/train'
@@ -45,41 +47,39 @@ def main():
     print(model.summary())
 
     # Configure image data augmentation
-    train_datagen = ImageDataGenerator(
+    ImageFlow = ImageDataGenerator(
         rescale=1. / 255,
-        rotation_range=45,
-        width_shift_range=0.15,
-        height_shift_range=0.15,
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
         shear_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True,
         fill_mode='nearest'
     )
 
-    validation_datagen = ImageDataGenerator(rescale=1. / 255)
-
     # Set up the data generators
-    train_generator = train_datagen.flow_from_directory(
-        train_directory,
+    train_generator = ImageFlow.flow_from_directory(
+        directory=train_directory,
         target_size=(image_height, image_width),
-        batch_size=32,
+        batch_size=batch_size,
         class_mode='categorical'
     )
 
-    validation_generator = validation_datagen.flow_from_directory(
-        validation_directory,
+    validation_generator = ImageFlow.flow_from_directory(
+        directory=validation_directory,
         target_size=(image_height, image_width),
-        batch_size=32,
+        batch_size=batch_size,
         class_mode='categorical'
     )
 
     # Fit the model
     model.fit(
         train_generator,
-        steps_per_epoch=train_generator.samples // train_generator.batch_size,
-        epochs=1,  # Set a realistic number of epochs for sufficient training
+        steps_per_epoch=train_generator.n // train_generator.batch_size,
+        epochs=epochs,  # Set a realistic number of epochs for sufficient training
         validation_data=validation_generator,
-        validation_steps=validation_generator.samples // validation_generator.batch_size
+        validation_steps=validation_generator.n // validation_generator.batch_size
     )
 
     # Save the trained model
@@ -146,7 +146,7 @@ def main():
     results_df.to_csv(csv_file_path, index=False)
 
     print(f'Results saved to {csv_file_path}')
-
-
+    
+    
 if __name__ == '__main__':
     main()
